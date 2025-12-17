@@ -1,0 +1,238 @@
+=====================================================
+TEXT-TO-CAD - COMMANDS TO RUN
+=====================================================
+
+## QUICK START: Web Demo (Recommended - Already Working!)
+
+### 1. Start the Web Server
+cd "c:\Users\chand\OneDrive\Documents\3D_CAD\text_to_cad"
+python -m http.server 8000 --directory web_demo
+
+### 2. Open in Browser
+# Navigate to: http://localhost:8000
+# The web app will open with the 3D viewer
+
+### 3. Use the Application
+- Click example commands OR type your own text
+- Click "Generate 3D Model" button
+- Watch shapes appear in the 3D viewer
+- Use mouse to rotate, pan, zoom
+
+### 4. Stop the Server
+Press Ctrl+C in the terminal
+
+=====================================================
+## ORIGINAL PYTHON TOOLS (Requires FreeCAD Setup)
+=====================================================
+
+NOTE: These require FreeCAD Python integration to be configured.
+See FREECAD_SETUP.md for configuration steps.
+
+### Generate Training Data (Create Dataset)
+
+# Generate sphere training data
+python training_data_generation/scripts/generate_sphere_data.py --num-datapoints 10000 --output datasets/sphere_data.csv
+
+# Generate cube/box data
+python training_data_generation/scripts/generate_box_and_cube_data.py --num-datapoints 10000 --output datasets/cube_data.csv
+
+# Generate cylinder data
+python training_data_generation/scripts/generate_cylinder_data.py --num-datapoints 10000 --output datasets/cylinder_data.csv
+
+# Generate cone data
+python training_data_generation/scripts/generate_cone_data.py --num-datapoints 10000 --output datasets/cone_data.csv
+
+# Generate torus data
+python training_data_generation/scripts/generate_torus_data.py --num-datapoints 10000 --output datasets/torus_data.csv
+
+### Train the Model
+
+# Create datasets directory first
+mkdir datasets
+
+# Train the model on generated data
+python model_generation/scripts/train_model.py --datasets-dir datasets --epochs 50 --batch-size 64
+
+# This will create:
+# - model.pth (trained model)
+# - config.yaml (configuration)
+# - vectorizer.pkl (text vectorizer)
+
+### Run Text-to-CAD Conversion
+
+# Convert text description to 3D CAD file
+python text_to_cad/scripts/run_text_to_cad.py \
+    --text-input "A large sphere" \
+    --output-file output_sphere.FCStd \
+    --model-file model.pth \
+    --config-file config.yaml \
+    --vectorizer-file vectorizer.pkl
+
+# Open the generated file in FreeCAD
+# View -> Visibility -> Show all objects
+
+### Generate Example 3D Shape (Standalone)
+
+# Run the example shape generator
+python generative_cad/scripts/example_generate_freecad_shape.py
+
+# This creates: example_freecad_shape.fcstd
+
+=====================================================
+## TESTING & VERIFICATION
+=====================================================
+
+### Test Python Package Imports
+python -c "import generative_cad; print('✓ generative_cad OK')"
+python -c "import text_to_cad_common; print('✓ text_to_cad_common OK')"
+python -c "import training_data_generation; print('✓ training_data_generation OK')"
+python -c "import model_generation; print('✓ model_generation OK')"
+python -c "import text_to_cad; print('✓ text_to_cad OK')"
+
+### Test Dependencies
+python -c "import torch; print('PyTorch:', torch.__version__)"
+python -c "import sklearn; print('scikit-learn:', sklearn.__version__)"
+python -c "import numpy; print('NumPy:', numpy.__version__)"
+
+### Test FreeCAD (if configured)
+python -c "import FreeCAD; print('FreeCAD:', FreeCAD.Version())"
+
+=====================================================
+## USING FREECAD'S PYTHON (Alternative Approach)
+=====================================================
+
+If FreeCAD Python integration isn't working with system Python,
+use FreeCAD's bundled Python instead:
+
+### 1. Find FreeCAD's Python
+# Search in Start Menu or typical locations:
+# C:\Program Files\FreeCAD 1.0\bin\python.exe
+
+### 2. Install Packages to FreeCAD Python
+"C:\path\to\FreeCAD\bin\python.exe" -m pip install -e ./generative_cad
+"C:\path\to\FreeCAD\bin\python.exe" -m pip install -e ./text_to_cad_common
+"C:\path\to\FreeCAD\bin\python.exe" -m pip install -e ./training_data_generation
+"C:\path\to\FreeCAD\bin\python.exe" -m pip install -e ./model_generation
+"C:\path\to\FreeCAD\bin\python.exe" -m pip install -e ./text_to_cad
+
+### 3. Run Scripts with FreeCAD Python
+"C:\path\to\FreeCAD\bin\python.exe" run_example.py
+"C:\path\to\FreeCAD\bin\python.exe" generative_cad/scripts/example_generate_freecad_shape.py
+
+=====================================================
+## TRAINING WORKFLOW (Complete Pipeline)
+=====================================================
+
+### Step 1: Generate All Training Data
+cd "c:\Users\chand\OneDrive\Documents\3D_CAD\text_to_cad"
+mkdir datasets
+
+# Generate data for all shapes (adjust num-datapoints as needed)
+python training_data_generation/scripts/generate_sphere_data.py --num-datapoints 100000
+python training_data_generation/scripts/generate_box_and_cube_data.py --num-datapoints 100000
+python training_data_generation/scripts/generate_cylinder_data.py --num-datapoints 100000
+python training_data_generation/scripts/generate_cone_data.py --num-datapoints 100000
+python training_data_generation/scripts/generate_torus_data.py --num-datapoints 100000
+
+# This creates 500,000 training examples total
+
+### Step 2: Train the Model
+python model_generation/scripts/train_model.py \
+    --datasets-dir datasets \
+    --epochs 100 \
+    --batch-size 128 \
+    --learning-rate 0.001
+
+### Step 3: Test the Trained Model
+python text_to_cad/scripts/run_text_to_cad.py \
+    --text-input "A large red sphere at position 0, 2, 2" \
+    --output-file test_output.FCStd \
+    --model-file model.pth \
+    --config-file config.yaml \
+    --vectorizer-file vectorizer.pkl
+
+### Step 4: Evaluate Model
+# Check model.pth was created
+# Review training logs for accuracy metrics
+# Test with various text descriptions
+
+=====================================================
+## WEB DEMO - ENHANCED VERSION (Future)
+=====================================================
+
+When AI integration is added:
+
+### Start Backend API Server
+cd "c:\Users\chand\OneDrive\Documents\3D_CAD\text_to_cad\web_demo"
+python api_server.py
+
+### Start Frontend Web Server
+python -m http.server 8000 --directory web_demo
+
+### Access Application
+http://localhost:8000
+
+=====================================================
+## TROUBLESHOOTING COMMANDS
+=====================================================
+
+### Check if web server is running
+# Open browser to: http://localhost:8000
+# Should see Text-to-CAD interface
+
+### Find Python version
+python --version
+
+### List installed packages
+pip list | findstr -i "torch sklearn numpy freecad generative text"
+
+### Check FreeCAD installation
+winget list --id FreeCAD.FreeCAD
+
+### Find FreeCAD executable
+Get-ChildItem -Path "C:\" -Filter "FreeCAD.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+
+### Test FreeCAD path helper
+python find_freecad.py
+
+=====================================================
+## USEFUL COMMANDS
+=====================================================
+
+### View CSV Training Data
+# Open in Excel or
+type datasets\sphere_data.csv | more
+
+### Check File Sizes
+dir datasets\*.csv
+
+### View Model Info
+python -c "import torch; model = torch.load('model.pth'); print(model)"
+
+### Clean Generated Files
+del *.FCStd
+del datasets\*.csv
+del model.pth
+del config.yaml
+del vectorizer.pkl
+
+=====================================================
+## QUICK REFERENCE
+=====================================================
+
+✅ WORKS NOW (No Setup Required):
+   python -m http.server 8000 --directory web_demo
+   Open: http://localhost:8000
+
+⚠️ NEEDS FREECAD SETUP:
+   All Python scripts that generate actual CAD files
+
+📊 NOT RUN YET:
+   Training data generation
+   Model training
+   Original text_to_cad.py tools
+
+=====================================================
+RECOMMENDED: Start with the web demo - it's already working!
+Command: python -m http.server 8000 --directory web_demo
+=====================================================

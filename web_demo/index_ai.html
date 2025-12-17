@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Text to CAD - Multi-Object Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            height: 85vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #4a5568 0%, #2d3748 100%);
+            color: white;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #44ff88, #44ccff);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 8px;
+        }
+
+        .input-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .examples {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .examples h3 {
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .example-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .feature-badge {
+            background: rgba(68, 255, 136, 0.2);
+            border: 1px solid rgba(68, 255, 136, 0.4);
+            color: #44ff88;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .viewer {
+            position: relative;
+            background: #1a202c;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 11px;
+        }
+
+        .controls-overlay h4 {
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .controls-overlay p {
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .status {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
+            border-radius: 24px;
+            color: white;
+            font-size: 13px;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .status.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .sidebar {
+                max-height: 40vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>🤖 AI Text to CAD</h1>
+                <span class="ai-badge">ML Powered</span>
+                <p>Multi-Object 3D Generator with Machine Learning</p>
+            </div>
+
+            <div class="input-section">
+                <label for="text-input">💭 Enter ANY Description</label>
+                <textarea id="text-input"
+                    placeholder="Try:&#10;• 'a house'&#10;• 'stack 3 cubes'&#10;• 'a snowman'&#10;• '4 orange balls'&#10;• 'sphere and cube'">
+                </textarea>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generateShape()">🎨 Generate 3D</button>
+                    <button class="btn-secondary" onclick="clearScene()">🗑️ Clear Scene</button>
+                </div>
+
+                <div class="feature-badge">
+                    ✨ Random Forest + Linear Regression + K-Means
+                </div>
+
+                <div class="examples">
+                    <h3>📚 Examples (Click to Try)</h3>
+                    <div class="example-item" onclick="loadExample(0)">A large red sphere</div>
+                    <div class="example-item" onclick="loadExample(1)">A blue cube with size 2</div>
+                    <div class="example-item" onclick="loadExample(2)">3 green cylinders</div>
+                    <div class="example-item" onclick="loadExample(3)">🏠 A house (multi-object)</div>
+                    <div class="example-item" onclick="loadExample(4)">⬆️ stack 3 cubes</div>
+                    <div class="example-item" onclick="loadExample(5)">🪑 A table (composite)</div>
+                    <div class="example-item" onclick="loadExample(6)">⛄ A snowman</div>
+                    <div class="example-item" onclick="loadExample(7)">sphere and cube</div>
+                    <div class="example-item" onclick="loadExample(8)">4 orange balls</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewer">
+            <div id="canvas-container"></div>
+            <div class="controls-overlay">
+                <h4>🎮 Controls</h4>
+                <p>🖱️ Left: Rotate</p>
+                <p>🖱️ Right: Pan</p>
+                <p>🔄 Scroll: Zoom</p>
+            </div>
+            <div class="status" id="status">🤖 AI Ready!</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="app_ai.js"></script>
+</body>
+
+</html>

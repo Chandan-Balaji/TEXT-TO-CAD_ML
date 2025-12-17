@@ -5,7 +5,7 @@ setup(
     packages=find_namespace_packages(where="python"),
     package_dir={"": "python"},
     version="1.0.0",
-    install_requires=["python3-text-to-cad-common"],
+    install_requires=["text-to-cad-common"],
     author="Monica Perez Serrano",
     author_email="monicapserrano@outlook.com",
     description="Generation of training data",

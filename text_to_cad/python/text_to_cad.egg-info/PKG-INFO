@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: text_to_cad
+Version: 1.0.0
+Summary: Text to CAD.
+Home-page: https://github.com/monicapserrano/text_to_cad/training_data_generation
+Author: Monica Perez Serrano
+Author-email: monicapserrano@outlook.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Requires-Dist: generative_cad
+Requires-Dist: text_to_cad_common
+Requires-Dist: torch
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
